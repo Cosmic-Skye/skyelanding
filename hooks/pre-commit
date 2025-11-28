@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Auto cache-bust CSS on commit to main
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+if [ "$BRANCH" = "main" ]; then
+  # Check if index.html is being committed or if CSS is being committed
+  if git diff --cached --name-only | grep -qE "(styles\.css|index\.html)"; then
+    # Generate timestamp-based version
+    VERSION=$(date +%s)
+
+    # Update the cache bust parameter in index.html
+    sed -i '' "s/styles\.css?v=[0-9]*/styles.css?v=$VERSION/" index.html
+
+    # Re-add index.html if it was modified
+    git add index.html
+  fi
+fi
+
+exit 0
