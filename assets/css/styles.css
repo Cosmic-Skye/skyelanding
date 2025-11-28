@@ -91,30 +91,44 @@ h1 { margin: 0; font-size: clamp(1.6rem, 2.4vw + 1rem, 2.4rem); letter-spacing: 
   --p: 1;
   position: relative; width:84px; height:84px; border-radius:9999px; display:grid; place-items:center;
   text-decoration:none; color:var(--text);
-  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)), rgba(0,0,0,0.4);
   border: 1px solid rgba(255,255,255,0.18);
   box-shadow: 0 6px 40px rgba(0,0,0,0.35), 0 0 18px rgba(138,92,255,0.25), 0 0 22px rgba(0,255,208,0.14);
-  isolation:isolate; backdrop-filter: blur(8px) saturate(140%); -webkit-backdrop-filter: blur(8px) saturate(140%);
+  isolation: isolate; backdrop-filter: blur(8px) saturate(140%); -webkit-backdrop-filter: blur(8px) saturate(140%);
   overflow:visible; transform: translateZ(0) scale(var(--p)); transition: transform 160ms ease, box-shadow 200ms ease; will-change: transform, box-shadow;
 }
 .orb::before{ content:""; position:absolute; inset:-2px; border-radius:inherit; padding:1.5px; background: conic-gradient(from 0deg at 50% 50%, var(--accent-1), var(--accent-2), var(--accent-1)); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude; animation: spin 6s linear infinite; opacity:.7; pointer-events:none; }
 .orb::after{ content:""; position:absolute; inset:0; border-radius:inherit; background: radial-gradient(60% 60% at 50% 35%, rgba(255,255,255,0.28), transparent 50%); pointer-events:none; }
 .orb:hover{ transform: scale(var(--p)); box-shadow: 0 10px 50px rgba(0,0,0,0.45), 0 0 28px rgba(138,92,255,0.45), 0 0 34px rgba(0,255,208,0.24); }
-.orb svg { width:28px; height:28px; display:block; fill:#fff; }
+.orb svg { width:28px; height:28px; display:block; fill:#fff; position: relative; z-index: 1; }
+.orb-glow {
+  border-radius: 9999px;
+  background: conic-gradient(from 0deg at 50% 50%, var(--accent-1), var(--accent-2), var(--accent-1));
+  filter: blur(14px);
+  opacity: 0.6;
+  animation: spin 6s linear infinite;
+  pointer-events: none;
+}
 @keyframes spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce){ .orb::before{ animation:none; } }
+@media (prefers-reduced-motion: reduce){ .orb::before, .orb-glow{ animation:none; } }
+
+/* Orb wrapper for glow positioning */
+.orb-wrap{ position: relative; display: grid; place-items: center; }
+.orb-wrap .orb-glow{ position: absolute; inset: -8px; z-index: 0; transition: inset 160ms ease, opacity 200ms ease; }
+.orb-wrap:hover .orb-glow{ inset: -14px; opacity: 0.8; }
+.orb-wrap .orb{ position: relative; z-index: 1; }
 
 /* Brand accents */
-.orb.sora{ --accent-1:#044497; --accent-2:#7ec8e3; box-shadow: 0 6px 40px rgba(0,0,0,0.35), 0 0 20px rgba(4,68,151,0.5), 0 0 28px rgba(126,200,227,0.35); }
-.orb.ig{ --accent-1:#E1306C; --accent-2:#833AB4; box-shadow: 0 6px 40px rgba(0,0,0,0.35), 0 0 20px rgba(225,48,108,0.5), 0 0 28px rgba(131,58,180,0.35); }
-.orb.tt{ --accent-1:#25F4EE; --accent-2:#FE2C55; box-shadow: 0 6px 40px rgba(0,0,0,0.35), 0 0 20px rgba(37,244,238,0.5), 0 0 28px rgba(254,44,85,0.35); }
-.orb.yt{ --accent-1:#ff0033; --accent-2:#ff9999; box-shadow: 0 6px 40px rgba(0,0,0,0.35), 0 0 20px rgba(255,0,51,0.5), 0 0 28px rgba(255,153,153,0.35); }
-.orb.x{ --accent-1:#fff; --accent-2:#444; box-shadow: 0 6px 40px rgba(0,0,0,0.35), 0 0 20px rgba(255,255,255,0.3), 0 0 28px rgba(68,68,68,0.25); }
-.orb.th{ --accent-1:#fff; --accent-2:#555; box-shadow: 0 6px 40px rgba(0,0,0,0.35), 0 0 20px rgba(255,255,255,0.3), 0 0 28px rgba(85,85,85,0.25); }
-.orb.sc{ --accent-1:#ff7700; --accent-2:#ffddbb; box-shadow: 0 6px 40px rgba(0,0,0,0.35), 0 0 20px rgba(255,119,0,0.5), 0 0 28px rgba(255,221,187,0.35); }
-.orb.suno{ --accent-1:#ff5a00; --accent-2:#ffe066; box-shadow: 0 6px 40px rgba(0,0,0,0.35), 0 0 20px rgba(255,90,0,0.5), 0 0 28px rgba(255,224,102,0.35); }
-.orb.sp{ --accent-1:#1DB954; --accent-2:#b9fbc0; box-shadow: 0 6px 40px rgba(0,0,0,0.35), 0 0 20px rgba(29,185,84,0.5), 0 0 28px rgba(185,251,192,0.35); }
-.orb.am{ --accent-1:#fc3c44; --accent-2:#fa57c1; box-shadow: 0 6px 40px rgba(0,0,0,0.35), 0 0 20px rgba(252,60,68,0.5), 0 0 28px rgba(250,87,193,0.35); }
+.orb-wrap.sora{ --accent-1:#044497; --accent-2:#7ec8e3; }
+.orb-wrap.ig{ --accent-1:#E1306C; --accent-2:#833AB4; }
+.orb-wrap.tt{ --accent-1:#25F4EE; --accent-2:#FE2C55; }
+.orb-wrap.yt{ --accent-1:#ff0033; --accent-2:#ff9999; }
+.orb-wrap.x{ --accent-1:#fff; --accent-2:#444; }
+.orb-wrap.th{ --accent-1:#fff; --accent-2:#555; }
+.orb-wrap.sc{ --accent-1:#ff7700; --accent-2:#ffddbb; }
+.orb-wrap.suno{ --accent-1:#ff5a00; --accent-2:#ffe066; }
+.orb-wrap.sp{ --accent-1:#1DB954; --accent-2:#b9fbc0; }
+.orb-wrap.am{ --accent-1:#fc3c44; --accent-2:#fa57c1; }
 
 /* Mask helper (unused by inline Sora SVG, kept for flexibility) */
 .mask-icon{ width:28px; height:28px; display:block; background:#fff; -webkit-mask-size:contain; mask-size:contain; -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat; -webkit-mask-position:center; mask-position:center; }
