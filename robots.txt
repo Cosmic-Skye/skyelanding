@@ -1,0 +1,6 @@
+# robots.txt for skye.page
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://www.skye.page/sitemap.xml

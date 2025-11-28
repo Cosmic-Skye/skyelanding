@@ -1,6 +1,7 @@
 {
-  "name": "Cosmic Skye — Links",
-  "short_name": "Skye",
+  "name": "Cosmic Skye — Sora Creator",
+  "short_name": "Cosmic Skye",
+  "description": "Cosmic Skye — Sora creator making original content. Links to social media and exclusive content.",
   "icons": [
     {
       "src": "/favicon/web-app-manifest-192x192.png",
