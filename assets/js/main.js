@@ -1,69 +1,100 @@
 // Footer year
 document.getElementById('year').textContent = new Date().getFullYear();
 
-// Starfield (original look, refactored without behavior changes)
-const canvas = document.getElementById('stars');
-const ctx = canvas.getContext('2d');
+// HDR Starfield using img elements with HDR AVIF sprite
+const container = document.getElementById('stars');
+const starSrc = 'assets/img/star-hdr.avif';
 let stars = [];
-let w, h, dpr;
+let w, h;
 
 const rand = (min, max) => Math.random() * (max - min) + min;
 
 function resize() {
-  dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-  w = canvas.clientWidth; h = canvas.clientHeight;
-  canvas.width = Math.floor(w * dpr);
-  canvas.height = Math.floor(h * dpr);
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  w = container.clientWidth;
+  h = container.clientHeight;
   build();
 }
 
 function build() {
-  const count = Math.round((w * h) / 8000); // density
-  stars = new Array(count).fill(0).map(() => ({
-    x: rand(0, w),
-    y: rand(0, h),
-    r: Math.pow(Math.random(), 1.8) * 1.4 + 0.2,
-    intensity: rand(0.4, 1.0),
-    currentSpeed: rand(0.8, 3.0), // reasonable speed range
-    phaseStart: 0,                // sine phase at cycle start
-    timeStart: 0                  // time at cycle start
-  }));
+  // Clear existing stars
+  container.innerHTML = '';
+  stars = [];
+
+  const count = Math.round((w * h) / 1000); // density (8x more stars)
+  for (let i = 0; i < count; i++) {
+    const img = document.createElement('img');
+    img.src = starSrc;
+    img.alt = '';
+    img.draggable = false;
+
+    // Random position
+    const x = rand(0, 100);
+    const y = rand(0, 100);
+    img.style.left = x + '%';
+    img.style.top = y + '%';
+
+    // Random size (1-5px base width)
+    const size = Math.pow(Math.random(), 1.8) * 4 + 1;
+    img.style.width = size + 'px';
+    img.style.height = 'auto';
+
+    // Start at full brightness
+    img.style.opacity = '1';
+    img.style.transform = 'scale(1)';
+
+    container.appendChild(img);
+    stars.push({
+      el: img,
+      twinkling: false,
+      twinkleStart: 0,
+      twinkleSpeed: rand(2.0, 4.0)
+    });
+  }
 }
 
+let lastFrame = 0;
 function draw(nowMs) {
-  const t = nowMs / 1000; // seconds
-  ctx.clearRect(0, 0, w, h);
-  for (const s of stars) {
-    // Current phase based on elapsed since cycle start
-    const elapsed = t - s.timeStart;
-    const currentPhase = s.phaseStart + elapsed * s.currentSpeed;
-    // Cycle reset at π for abs(sin)
-    if (currentPhase >= s.phaseStart + Math.PI) {
-      s.phaseStart = 0;
-      s.timeStart = t;
-      s.currentSpeed = rand(0.8, 3.0);
-    }
-    const phase = s.phaseStart + (t - s.timeStart) * s.currentSpeed;
-    const twinkle = 0.2 + 0.8 * Math.abs(Math.sin(phase));
-    const brightness = s.intensity * twinkle;
-    const radius = s.r * (0.6 + brightness * 0.8);
-    const opacity = 0.1 + brightness * 0.9;
+  // Throttle to ~20fps
+  if (nowMs - lastFrame < 50) {
+    requestAnimationFrame(draw);
+    return;
+  }
+  lastFrame = nowMs;
 
-    const grad = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, radius * 3);
-    grad.addColorStop(0, `rgba(255,255,255,${opacity})`);
-    grad.addColorStop(0.5, `rgba(207,232,255,${opacity * 0.6})`);
-    grad.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.arc(s.x, s.y, radius, 0, Math.PI * 2);
-    ctx.fill();
+  const t = nowMs / 1000; // seconds
+
+  for (const s of stars) {
+    if (s.twinkling) {
+      // Currently in a twinkle cycle
+      const elapsed = t - s.twinkleStart;
+      const phase = elapsed * s.twinkleSpeed;
+
+      if (phase >= Math.PI) {
+        // Twinkle cycle complete, back to full brightness
+        s.twinkling = false;
+        s.el.style.opacity = '1';
+        s.el.style.transform = 'scale(1)';
+      } else {
+        // Dim down then back up (use sin: 0 -> 1 -> 0, invert for brightness)
+        const dim = Math.sin(phase); // 0 -> 1 -> 0
+        const brightness = 1 - dim;  // 1 -> 0 -> 1
+        s.el.style.opacity = (0.2 + brightness * 0.8).toFixed(3);
+        s.el.style.transform = 'scale(' + (0.7 + brightness * 0.3).toFixed(3) + ')';
+      }
+    } else {
+      // Randomly start a twinkle (low probability per frame)
+      if (Math.random() < 0.01) {
+        s.twinkling = true;
+        s.twinkleStart = t;
+        s.twinkleSpeed = rand(2.0, 4.0);
+      }
+    }
   }
   requestAnimationFrame(draw);
 }
 
 const ro = new ResizeObserver(resize);
-ro.observe(canvas);
+ro.observe(container);
 resize();
 requestAnimationFrame(draw);
 
